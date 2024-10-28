@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Equipos de la Liga Pro Ecuador</title>
+    <style>
+        /* Estilo general */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('https://www.example.com/football-stadium-bg.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            color: #fff;
+            text-align: center;
+        }
+        /* Contenedor de información del usuario */
+        .user-info {
+            position: absolute;
+            top: 0; /* Pegado al borde superior */
+            right: 0; /* Pegado al borde derecho */
+            width: 150px;
+            padding: 2.5px;
+            background-color: rgba(2, 35, 135, 0.6);
+            border-radius: 8px;
+            color: #000000;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Opcionalmente elimina el margen del body */
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background: url('https://www.example.com/football-stadium-bg.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+            text-align: center;
+        }
+
+        /* Imagen de usuario */
+        .user-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-bottom: 5px;
+            border: 2px solid #ffcc00;
+        }
+
+        /* Menú desplegable */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #333;
+            color: #fff;
+            min-width: 100%;
+            border-radius: 5px;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.5);
+            z-index: 1;
+            text-align: center;
+        }
+
+        .dropdown-content a {
+            color: #000000;
+            padding: 10px 0;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #444;
+        }
+
+        /* Mostrar el menú al hacer hover */
+        .user-info:hover .dropdown-content {
+            display: block;
+        }
+
+        /* Estilo para el título principal */
+        h1 {
+            font-size: 3em;
+            color: #ffcc00;
+            margin-top: 48px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+            font-family: 'Helvetica Neue', sans-serif;
+        }
+
+        /* Estilo del logo de la página */
+        .page-logo {
+            position: absolute;
+            top: -36px;
+            left: 188px;
+            width: 230px;
+            height: auto;
+        }
+
+        /* Estilo de la tabla */
+        table {
+            width: 80%;
+            margin: 50px auto;
+            border-collapse: collapse;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background-color: #ffcc00;
+            color: #000;
+            padding: 15px;
+            font-size: 1.2em;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        a {
+            background-color: #28a745;
+            color: #fff;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        a:hover {
+            background-color: #218838;
+            transform: scale(1.05);
+        }
+
+        .team-logo {
+            width: 70px;
+            height: auto;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 768px) {
+            table {
+                width: 95%;
+            }
+
+            h1 {
+                font-size: 2.2em;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Contenedor para la información del usuario logeado -->
+    <div class="user-info">
+        <img src="{{ url_for('static', filename='logos/user.png') }}" alt="User Image">
+        <p>{{ usuario }}</p>
+        <p>{{ correo }}</p>
+        <div class="dropdown-content">
+            <a href="{{ url_for('editar') }}">Editar Usuario</a>
+            <a href="{{ url_for('logout') }}">Cerrar Sesión</a>
+        </div>
+    </div>
+
+    <img src="{{ url_for('static', filename='logos/logo.png') }}" alt="Logo de la Liga Pro" class="page-logo">
+    <h1>Equipos de la Liga Pro Ecuador</h1>
+    
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Logo</th>
+            <th>Nombre</th>
+            <th>Detalles</th>
+        </tr>
+        {% for team in teams %}
+        <tr>
+            <td>{{ team['team']['id'] }}</td>
+            <td>
+                <img src="{{ url_for('static', filename='logos/' + team['team']['id'] ~ '.png') }}" alt="{{ team['team']['name'] }} Logo" class="team-logo">
+            </td>
+            <td>{{ team['team']['name'] }}</td>
+            <td><a href="{{ url_for('show_team_details', team_id=team['team']['id']) }}">Ver Resultados</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

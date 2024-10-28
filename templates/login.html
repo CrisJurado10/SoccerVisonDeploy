@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión</title>
+    <style>
+        /* Estilos generales para el cuerpo de la página */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('https://www.example.com/grass-texture.jpg') no-repeat center center fixed; /* Fondo simulando césped */
+            background-size: cover; /* Cubrir toda la pantalla con la imagen */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #fff; /* Color de texto blanco */
+        }
+
+        /* Contenedor principal */
+        .container {
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.7); /* Fondo negro translúcido */
+            padding: 40px; /* Espacio superior e inferior aumentado */
+            border-radius: 10px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            width: 350px;
+            margin: auto;
+        }
+
+        /* Estilo para la imagen del logo */
+        .page-logo {
+            width: 140px; /* Tamaño del logo */
+            height: auto;
+            margin: -40px auto -15px; /* Margen superior de 10px, centrado y margen inferior reducido a 10px */
+            display: block; /* Asegurarse de que se trate como un bloque para centrar */
+        }
+
+        h1 {
+            font-size: 2em;
+            color: #ffcc00; /* Color amarillo dorado para el título */
+            margin-bottom: 15px; /* Espaciado inferior del título */
+            margin-top: 0; /* Remover margen superior del título */
+            font-family: 'Tahoma', sans-serif; /* Fuente sólida, clara y deportiva */
+        }
+
+        label {
+            color: #fff;
+            font-size: 1.1em;
+            display: block; /* Hacer que el label ocupe todo el ancho */
+            text-align: center; /* Centrar el texto del label */
+            margin: 15px 0 5px; /* Espaciado entre el label y el input */
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: calc(100% - 24px); /* Ajustar el ancho para el padding */
+            padding: 12px;
+            margin: 10px auto; /* Alinear el margen a la parte superior e inferior y centrar horizontalmente */
+            border-radius: 5px;
+            border: none;
+            background-color: #f0f0f0;
+            display: block; /* Asegurarse de que cada input ocupe todo el ancho */
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border: 2px solid #007bff;
+        }
+
+        button {
+            background-color: #28a745; /* Verde deportivo */
+            color: #fff;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        a {
+            display: block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #ffcc00; /* Amarillo dorado */
+            font-size: 0.9em;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        p {
+            color: #ff0000;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Imagen del logo centrada -->
+        <img src="{{ url_for('static', filename='logos/logo.png') }}" alt="Logo" class="page-logo"> <!-- Logo de la página -->
+        
+        <h1>⚽ Iniciar Sesión ⚽</h1>
+        <form action="/login" method="POST">
+            <label for="usuario">Usuario:</label>
+            <input type="text" id="usuario" name="usuario" required>
+
+            <label for="contraseña">Contraseña:</label>
+            <input type="password" id="contraseña" name="contraseña" required>
+
+            <button type="submit">Iniciar Sesión</button>
+        </form>
+
+        {% if error %}
+        <p>{{ error }}</p>
+        {% endif %}
+
+        <a href="{{ url_for('registro') }}">¿No tienes cuenta? Crear una cuenta</a>
+    </div>
+</body>
+</html>

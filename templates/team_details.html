@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles de {{ team['team']['name'] }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Estilo general */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('https://www.example.com/football-stadium-bg.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        /* Estilo para el botón de "Volver al menú" */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #333; /* Fondo gris oscuro */
+            color: #fff; /* Texto blanco */
+            font-size: 1em;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Sombra */
+        }
+
+        .back-button:hover {
+            background-color: #4caf50; /* Cambia a verde oscuro al pasar el mouse */
+            transform: translateY(-3px); /* Sutil movimiento hacia arriba al pasar el mouse */
+        }
+
+        /* Estilo para el título principal */
+        h1 {
+            font-size: 3.5em;
+            color: #e6e6e6; /* Color gris claro */
+            margin-top: 20px;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+            font-family: 'Helvetica Neue', sans-serif;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Estilo para el logo del equipo */
+        .team-logo {
+            width: 200px; /* Ajusta el tamaño del logo */
+            height: auto; /* Mantiene la proporción */
+            margin-bottom: 20px; /* Espacio inferior */
+            border-radius: 10px; /* Bordes redondeados */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Sombra */
+        }
+
+        /* Estilo para los subtítulos */
+        h2 {
+            font-size: 2.5em;
+            color: #c0c0c0; /* Color gris metálico */
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #c0c0c0; /* Subrayado */
+            padding-bottom: 5px; /* Espacio debajo */
+        }
+
+        /* Estilo para los párrafos */
+        p {
+            font-size: 1.2em;
+            margin: 10px 0;
+            color: #d3d3d3; /* Color gris claro */
+        }
+
+        /* Estilo para la lista de resultados */
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        /* Estilo para cada partido */
+        li {
+            background-color: rgba(20, 20, 20, 0.8); /* Fondo oscuro semitransparente */
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: left;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Sombra */
+        }
+
+        /* Estilo de los enlaces */
+        a {
+            color: #4caf50; /* Verde oscuro */
+            font-weight: bold;
+            text-decoration: none;
+            margin-top: 20px;
+            display: inline-block; /* Permite márgenes alrededor */
+            padding: 10px 20px;
+            border: 2px solid #4caf50; /* Borde verde oscuro */
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s; /* Transición suave */
+            font-size: 1.2em;
+        }
+
+        a:hover {
+            background-color: #4caf50; /* Fondo verde oscuro al pasar el mouse */
+            color: #fff; /* Cambia el color del texto al blanco */
+        }
+    </style>
+</head>
+<body>
+    <!-- Botón para volver al menú -->
+    <a href="{{ url_for('teams') }}" class="back-button">Volver al Menú</a>
+
+    <h1>Detalles de {{ team['team']['name'] }}</h1>
+    <img src="{{ url_for('static', filename='logos/' + team['team']['id'] ~ '.png') }}" alt="{{ team['team']['name'] }} Logo" class="team-logo"> <!-- Logo del equipo -->
+
+    <h2 style="color: #000000; font-size: 2.8em;">Información General</h2>
+    <p style="color: #000000; font-size: 1.4em;"><strong>Nombre:</strong> {{ team['team']['name'] }}</p>
+    <p style="color: #000000; font-size: 1.4em;"><strong>País:</strong> {{ team['team']['country'] }}</p>
+    <p style="color: #000000; font-size: 1.4em;"><strong>Fundado:</strong> {{ team['team'].get('founded', 'No disponible') }}</p>
+
+    {% if team.get('venue') %}
+        <p style="color: #000000; font-size: 1.4em;"><strong>Estadio:</strong> {{ team['venue']['name'] }}</p>
+        <p style="color: #000000; font-size: 1.4em;"><strong>Capacidad:</strong> {{ team['venue'].get('capacity', 'No disponible') }}</p>
+        <p style="color: #000000; font-size: 1.4em;"><strong>Ciudad:</strong> {{ team['venue'].get('city', 'No disponible') }}</p>
+    {% else %}
+        <p style="color: #000000; font-size: 1.4em;"><strong>Estadio:</strong> No disponible</p>
+    {% endif %}
+
+    <h2 style="color: #000000; font-size: 2.8em;">Últimos Resultados</h2>
+    <ul>
+        {% if results %}
+            {% for match in results %}
+                <li>
+                    <h3>Partido</h3>
+                    <p><strong>{{ match['teams']['home']['name'] }}</strong> vs 
+                    <strong>{{ match['teams']['away']['name'] }}</strong>: 
+                    {{ match['goals']['home'] }} - {{ match['goals']['away'] }}
+                    {% if match['date'] %}
+                        ({{ match['date'].strftime('%Y-%m-%d') }})
+                    {% else %}
+                        (Fecha no disponible)
+                    {% endif %}</p>
+                    
+                    <h4>Detalles del Partido</h4>
+                    <p><strong>ID del Partido:</strong> {{ match['fixture']['id'] }}</p>
+                    <p><strong>Árbitro:</strong> {{ match['fixture']['referee'] }}</p>
+                    <p><strong>Estado:</strong> {{ match['fixture']['status']['long'] }}</p>
+                    <p><strong>Estadio:</strong> {{ match['fixture']['venue']['name'] }}, 
+                    {{ match['fixture']['venue']['city'] }}</p>
+
+                    <h4>Marcadores</h4>
+                    <p><strong>Medio tiempo:</strong> 
+                    {{ match['score']['halftime']['home'] }} - 
+                    {{ match['score']['halftime']['away'] }}</p>
+                    <p><strong>Final:</strong> 
+                    {{ match['score']['fulltime']['home'] }} - 
+                    {{ match['score']['fulltime']['away'] }}</p>
+                    {% if match['score']['extratime']['home'] is not none %}
+                        <p><strong>Tiempo Extra:</strong> 
+                        {{ match['score']['extratime']['home'] }} - 
+                        {{ match['score']['extratime']['away'] }}</p>
+                    {% endif %}
+                    {% if match['score']['penalty']['home'] is not none %}
+                        <p><strong>Penaltis:</strong> 
+                        {{ match['score']['penalty']['home'] }} - 
+                        {{ match['score']['penalty']['away'] }}</p>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        {% else %}
+            <li>No se encontraron resultados recientes para este equipo.</li>
+        {% endif %}
+    </ul>
+
+    <a href="{{ url_for('home') }}">Volver a la lista de equipos</a>
+</body>
+</html>
