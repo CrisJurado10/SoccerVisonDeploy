@@ -14,35 +14,61 @@
             color: #fff;
             text-align: center;
         }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 20px;
+            gap: 20px;
+        }
+
         /* Contenedor de información del usuario */
         .user-info {
-            position: absolute;
-            top: 0; /* Pegado al borde superior */
-            right: 0; /* Pegado al borde derecho */
+            position: fixed; /* Cambio a 'fixed' para que siempre se mantenga en la misma posición */
+            top: 0;
+            right: 0;
             width: 150px;
-            padding: 2.5px;
-            background-color: rgba(2, 35, 135, 0.6);
+            padding: 10px;
+            background-color: rgba(2, 35, 135, 0.8);
             border-radius: 8px;
-            color: #000000;
+            color: #fff;
             text-align: center;
-            cursor: pointer;
-            font-weight: bold;
             display: flex;
             flex-direction: column;
             align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
         }
 
-        /* Opcionalmente elimina el margen del body */
-        body {
-            margin: 0;
-            font-family: 'Arial', sans-serif;
-            background: url('https://www.example.com/football-stadium-bg.jpg') no-repeat center center fixed;
-            background-size: cover;
-            color: #fff;
-            text-align: center;
+        /* Control del texto: ajuste dinámico */
+        .user-info p {
+            width: 100%;
+            max-width: 140px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            font-size: 16px;
+            display: inline-block;
+            transition: font-size 0.3s ease;
         }
 
-        /* Imagen de usuario */
+        /* Escalado para textos largos */
+        .user-info p.long {
+            font-size: 14px;
+            animation: shrinkText 0.5s ease-in-out forwards;
+        }
+
+        @keyframes shrinkText {
+            from {
+                font-size: 16px;
+            }
+            to {
+                font-size: 10px;
+            }
+        }
+
+        /* Imagen del usuario */
         .user-info img {
             width: 50px;
             height: 50px;
@@ -82,7 +108,7 @@
             display: block;
         }
 
-        /* Estilo para el título principal */
+        /* Estilo del título principal */
         h1 {
             font-size: 3em;
             color: #ffcc00;
@@ -166,8 +192,8 @@
     <!-- Contenedor para la información del usuario logeado -->
     <div class="user-info">
         <img src="{{ url_for('static', filename='logos/user.png') }}" alt="User Image">
-        <p>{{ usuario }}</p>
-        <p>{{ correo }}</p>
+        <p class="{{ 'long' if usuario|length > 10 }}">{{ usuario }}</p>
+        <p class="{{ 'long' if correo|length > 20 }}">{{ correo }}</p>
         <div class="dropdown-content">
             <a href="{{ url_for('editar') }}">Editar Usuario</a>
             <a href="{{ url_for('logout') }}">Cerrar Sesión</a>

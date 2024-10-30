@@ -72,18 +72,21 @@ def login():
         contraseña = request.form['contraseña']
 
         cur = mysql.connection.cursor()
-        cur.execute("SELECT usuario, correo, contraseña FROM usuarios WHERE usuario = %s", (usuario,))
+        cur.execute("SELECT id, usuario, correo, contraseña FROM usuarios WHERE usuario = %s", (usuario,))
         user = cur.fetchone()
         cur.close()
 
-        if user and check_password_hash(user[2], contraseña):  # `user[2]` es la contraseña hasheada
-            session['usuario'] = user[0]  # Nombre de usuario
-            session['correo'] = user[1]   # Correo del usuario
+        if user and check_password_hash(user[3], contraseña):  # `user[3]` es la contraseña hasheada
+            # Guardar id, usuario y correo en sesión
+            session['usuario_id'] = user[0]  # ID del usuario
+            session['usuario'] = user[1]     # Nombre de usuario
+            session['correo'] = user[2]      # Correo del usuario
             return redirect(url_for('teams'))
         else:
             return render_template('login.html', error="Usuario o contraseña incorrectos.")
     
     return render_template('login.html')
+
 
 # Ruta para cerrar sesión
 @app.route('/logout')
@@ -108,6 +111,39 @@ def obtener_indice(indice):
 @app.route('/editar')
 def editar():
     return render_template('edit_user.html')
+
+@app.route('/actualizar_usuario', methods=['POST'])
+def actualizar_usuario():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+
+    nuevo_usuario = request.form['usuario']
+    nuevo_correo = request.form['correo']
+    nueva_contraseña = request.form['contraseña']
+    usuario_id = session['usuario_id']
+
+    cursor = mysql.connection.cursor()
+
+    # Actualizar nombre de usuario y correo
+    if nuevo_usuario:
+        cursor.execute("UPDATE usuarios SET usuario = %s WHERE id = %s", (nuevo_usuario, usuario_id))
+        session['usuario'] = nuevo_usuario  # Actualizar en sesión
+
+    if nuevo_correo:
+        cursor.execute("UPDATE usuarios SET correo = %s WHERE id = %s", (nuevo_correo, usuario_id))
+        session['correo'] = nuevo_correo  # Actualizar en sesión
+
+    # Actualizar contraseña solo si se ha proporcionado una nueva
+    if nueva_contraseña:
+        contraseña_hasheada = generate_password_hash(nueva_contraseña)
+        cursor.execute("UPDATE usuarios SET contraseña = %s WHERE id = %s", (contraseña_hasheada, usuario_id))
+
+    mysql.connection.commit()
+    cursor.close()
+
+    flash("Usuario actualizado exitosamente.")
+    return redirect(url_for('teams'))
+
 
 
 @app.route('/usuarios/<int:indice>', methods=['PUT'])
@@ -137,7 +173,14 @@ def login_usuario(mysql):
     else:
         flash("Usuario o contraseña incorrecta")
         return redirect(url_for('login'))
+    
+@app.route('/editar')
+def editar_usuario():
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    return render_template('edit_user.html')
+
 
 # Ejecutar la aplicación
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)), debug=True)
+    app.run(debug=True)
