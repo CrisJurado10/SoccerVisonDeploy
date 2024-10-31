@@ -206,15 +206,16 @@
             <th>Detalles</th>
         </tr>
         {% for team in teams %}
-        <tr>
-            <td>{{ team['team']['id'] }}</td>
-            <td>
-                <img src="{{ url_for('static', filename='logos/' + team['team']['id'] ~ '.png') }}" alt="{{ team['team']['name'] }} Logo" class="team-logo">
-            </td>
-            <td>{{ team['team']['name'] }}</td>
-            <td><a href="{{ url_for('show_team_details', team_id=team['team']['id']) }}">Ver Resultados</a></td>
-        </tr>
+    <tr>
+        <td>{{ team['team']['id'] }}</td>
+        <td>
+            <img src="{{ team['team']['logo'] }}" alt="{{ team['team']['name'] }} Logo" class="team-logo">
+        </td>
+        <td>{{ team['team']['name'] }}</td>
+        <td><a href="{{ url_for('show_team_details', team_id=team['team']['id']) }}">Ver Resultados</a></td>
+    </tr>
         {% endfor %}
+
     </table>
 </body>
 </html>

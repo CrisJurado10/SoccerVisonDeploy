@@ -8,7 +8,7 @@ def index():
 
 def team_details(team_id):
     team_data = get_team_details(team_id)
-    print(team_data)  # Esto te mostrará qué estás recibiendo
+    print(team_data)  # Esto mostrará qué estás recibiendo
 
     if team_data is None:
         return "Datos del equipo no encontrados", 404

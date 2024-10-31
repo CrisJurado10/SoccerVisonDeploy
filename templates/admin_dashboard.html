@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrador de Usuarios</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0; /* Eliminar márgenes por defecto */
+            padding: 0; /* Eliminar padding por defecto */
+            position: relative; /* Necesario para posicionar el botón de cierre de sesión */
+        }
+
+        h1,
+        h2 {
+            color: #333;
+        }
+
+        /* Botón de logout */
+        .logout-btn {
+            background-color: #ff4b5c;
+            color: white;
+            border: none;
+            padding: 15px 30px; /* Aumentar tamaño del botón */
+            font-size: 16px; /* Aumentar tamaño de fuente */
+            cursor: pointer;
+            position: absolute; /* Posicionar el botón de cierre de sesión */
+            top: 20px; /* Ajusta la posición vertical */
+            right: 20px; /* Ajusta la posición horizontal */
+            border-radius: 5px; /* Bordes redondeados para un mejor estilo */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra para darle profundidad */
+            transition: background-color 0.3s, transform 0.3s; /* Transición suave */
+        }
+
+        .logout-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-2px); /* Efecto de elevación al pasar el mouse */
+        }
+
+        /* Estilos de la tabla */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Estilos de los botones */
+        .botones {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button {
+            padding: 5px 10px;
+            border-radius: 5px;
+            flex: 1;
+            max-width: 80px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .eliminar-btn {
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .editar-btn {
+            background-color: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .visualizar-btn {
+            background-color: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        /* Mensajes de error y éxito */
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .mensaje-exito {
+            color: green;
+            margin-top: 10px;
+        }
+
+        /* Estilos para búsqueda y ordenamiento */
+        .buscar,
+        .ordenar {
+            margin: 20px 0;
+        }
+
+        .detalle-usuario {
+            display: none;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        /* Alineación del contenido del detalle */
+        .alinear {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .contenedor-contraseña {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .boton-ver-detalles {
+            margin-top: 10px;
+        }
+
+        .boton-volver {
+            background-color: orange;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .flecha {
+            margin-left: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>CRUD de Usuarios</h1>
+    <!-- Botón de logout -->
+    <button class="logout-btn" onclick="location.href='/logout'">Cerrar Sesión</button>
+
+    <!-- Crear Usuario -->
+    <h2>Crear Usuario</h2>
+    <form id="crearUsuarioForm">
+        <input type="text" id="usuario" placeholder="Usuario" required>
+        <input type="email" id="correo" placeholder="Correo" required>
+        <input type="password" id="contraseña" placeholder="Contraseña" required>
+        <label for="is_admin">Administrador</label>
+    <input type="checkbox" id="is_admin" name="is_admin">
+        <button type="submit">Crear</button>
+    </form>
+
+    <div id="mensajeError" class="error"></div>
+
+    <!-- Campo de búsqueda -->
+    <div class="buscar">
+        <input type="text" id="buscarUsuario" placeholder="Buscar usuario...">
+    </div>
+
+    <!-- Lista de Usuarios -->
+    <h2>Lista de Usuarios</h2>
+    <div class="ordenar">
+        <label for="ordenarPor">Ordenar por:</label>
+        <select id="ordenarPor">
+            <option value="nombre">Nombre</option>
+            <option value="correo">Correo</option>
+        </select>
+    </div>
+    <table id="tablaUsuarios">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Usuario</th>
+                <th>Correo Electrónico</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="listaUsuarios"></tbody>
+    </table>
+
+    <!-- Actualizar Usuario -->
+    <h2>Actualizar Usuario</h2>
+    <form id="actualizarUsuarioForm">
+        <input type="number" id="IDActualizar" placeholder="ID" readonly required>
+        <input type="text" id="usuarioActualizar" placeholder="Usuario" required>
+        <input type="email" id="correoActualizar" placeholder="Correo" required>
+        <input type="password" id="contraseñaActualizar" placeholder="Contraseña" required>
+        <button type="submit">Actualizar</button>
+    </form>
+
+    <!-- Eliminar Usuario -->
+    <h2>Eliminar Usuario</h2>
+    <form id="eliminarUsuarioForm">
+        <input type="number" id="IDEliminar" placeholder="ID" required>
+        <button type="submit">Eliminar</button>
+    </form>
+
+    <div id="mensajeEliminar" class="mensaje"></div>
+
+    <script>
+        const listaUsuarios = document.getElementById('listaUsuarios');
+        const mensajeError = document.getElementById('mensajeError');
+        const mensajeEliminar = document.getElementById('mensajeEliminar');
+        const buscarUsuario = document.getElementById('buscarUsuario');
+        const ordenarPor = document.getElementById('ordenarPor');
+        let usuariosCargados = [];
+
+        async function cargarUsuarios() {
+            listaUsuarios.innerHTML = '';
+            const response = await fetch('/usuarios');
+            const usuarios = await response.json();
+            usuariosCargados = usuarios;
+            usuarios.forEach(usuario => agregarUsuarioATabla(usuario));
+        }
+
+        function agregarUsuarioATabla(usuario) {
+            const tr = document.createElement('tr');
+            const tdID = document.createElement('td');
+            tdID.textContent = usuario.id;
+
+            const tdUsuario = document.createElement('td');
+            tdUsuario.textContent = usuario.usuario;
+
+            const tdCorreo = document.createElement('td');
+            tdCorreo.textContent = usuario.correo;
+
+            const tdAcciones = document.createElement('td');
+            const botones = document.createElement('div');
+            botones.className = 'botones';
+
+            const editarBtn = document.createElement('button');
+            editarBtn.textContent = 'Editar';
+            editarBtn.className = 'editar-btn';
+            editarBtn.onclick = () => {
+                document.getElementById('IDActualizar').value = usuario.id;
+                document.getElementById('usuarioActualizar').value = usuario.usuario;
+                document.getElementById('correoActualizar').value = usuario.correo;
+                document.getElementById('contraseñaActualizar').value = usuario.contraseña;
+            };
+
+            const eliminarBtn = document.createElement('button');
+            eliminarBtn.textContent = 'Eliminar';
+            eliminarBtn.className = 'eliminar-btn';
+            eliminarBtn.onclick = async () => {
+                await fetch(`/usuarios/${usuario.id}`, { method: 'DELETE' });
+                cargarUsuarios();
+            };
+
+            const visualizarBtn = document.createElement('button');
+            visualizarBtn.textContent = 'Visualizar';
+            visualizarBtn.className = 'visualizar-btn';
+            visualizarBtn.onclick = () => {
+                alert(`Detalles del usuario: \nID: ${usuario.id}\nUsuario: ${usuario.usuario}\nCorreo: ${usuario.correo}\nContraseña: ${usuario.contraseña}`);
+            };
+
+            botones.appendChild(editarBtn);
+            botones.appendChild(eliminarBtn);
+            botones.appendChild(visualizarBtn);
+            tdAcciones.appendChild(botones);
+
+            tr.appendChild(tdID);
+            tr.appendChild(tdUsuario);
+            tr.appendChild(tdCorreo);
+            tr.appendChild(tdAcciones);
+            listaUsuarios.appendChild(tr);
+        }
+
+        document.getElementById('crearUsuarioForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const nuevoUsuario = {
+        usuario: document.getElementById('usuario').value,
+        correo: document.getElementById('correo').value,
+        contraseña: document.getElementById('contraseña').value,
+        is_admin: document.getElementById('is_admin').checked ? 1 : 0, // Captura el valor de is_admin
+    };
+
+    const response = await fetch('/usuarios', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(nuevoUsuario),
+    });
+
+    if (response.ok) {
+        cargarUsuarios();
+        document.getElementById('crearUsuarioForm').reset();
+    } else {
+        const errorData = await response.json();
+        mensajeError.textContent = errorData.mensaje || 'Error al crear el usuario.';
+    }
+});
+
+
+        document.getElementById('actualizarUsuarioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const usuarioActualizar = {
+                id: document.getElementById('IDActualizar').value,
+                usuario: document.getElementById('usuarioActualizar').value,
+                correo: document.getElementById('correoActualizar').value,
+                contraseña: document.getElementById('contraseñaActualizar').value,
+            };
+
+            await fetch(`/usuarios/${usuarioActualizar.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(usuarioActualizar),
+            });
+
+            cargarUsuarios();
+            document.getElementById('actualizarUsuarioForm').reset();
+        });
+
+        document.getElementById('eliminarUsuarioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const idEliminar = document.getElementById('IDEliminar').value;
+
+            const response = await fetch(`/usuarios/${idEliminar}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                cargarUsuarios();
+                document.getElementById('eliminarUsuarioForm').reset();
+            } else {
+                const errorData = await response.json();
+                mensajeEliminar.textContent = errorData.mensaje || 'Error al eliminar el usuario.';
+            }
+        });
+
+        buscarUsuario.addEventListener('input', () => {
+            const term = buscarUsuario.value.toLowerCase();
+            const usuariosFiltrados = usuariosCargados.filter(usuario => usuario.usuario.toLowerCase().includes(term));
+            listaUsuarios.innerHTML = '';
+            usuariosFiltrados.forEach(usuario => agregarUsuarioATabla(usuario));
+        });
+
+        ordenarPor.addEventListener('change', () => {
+            const criterio = ordenarPor.value;
+            const usuariosOrdenados = [...usuariosCargados].sort((a, b) => a[criterio].localeCompare(b[criterio]));
+            listaUsuarios.innerHTML = '';
+            usuariosOrdenados.forEach(usuario => agregarUsuarioATabla(usuario));
+        });
+
+        // Cargar usuarios al iniciar la página
+        cargarUsuarios();
+    </script>
+</body>
+
+</html>

@@ -13,6 +13,8 @@ def get_teams(season=2022):
     url = f'{BASE_URL}/teams?league={LEAGUE_ID}&season={season}'
     response = requests.get(url, headers=headers)
     teams_data = response.json()
+
+    print("Datos de equipos obtenidos:", teams_data)
     
     return teams_data['response']  # Devuelve la lista de equipos
 

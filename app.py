@@ -5,6 +5,7 @@ from werkzeug.security import check_password_hash, generate_password_hash, check
 from controllers.usuario_controller import (
     crear_usuario, obtener_usuarios, obtener_usuario, actualizar_usuario, eliminar_usuario
 )
+from models.models import get_teams, get_team_details
 from controllers.team_controller import index, team_details
 
 # Inicializar la aplicación Flask
@@ -41,6 +42,33 @@ def registro():
         usuario = request.form['usuario']
         correo = request.form['correo']
         contraseña = request.form['contraseña']
+        # Cambia para detectar el valor y asignarlo como 1 o 0
+        is_admin = int(request.form.get('is_admin', '0') == '1')
+
+        cursor = mysql.connection.cursor()
+        cursor.execute("SELECT * FROM usuarios WHERE usuario = %s OR correo = %s", (usuario, correo))
+        usuario_existente = cursor.fetchone()
+
+        if usuario_existente:
+            return render_template('registro.html', error="El usuario o correo ya existen.")
+        
+        contraseña_hasheada = generate_password_hash(contraseña)
+        cursor.execute("INSERT INTO usuarios (usuario, correo, contraseña, is_admin) VALUES (%s, %s, %s, %s)", 
+                       (usuario, correo, contraseña_hasheada, is_admin))
+        mysql.connection.commit()
+        cursor.close()
+
+        return redirect(url_for('login'))
+    
+    return render_template('registro.html')
+
+
+@app.route('/registro', methods=['GET', 'POST'])
+def registrocambiar():
+    if request.method == 'POST':
+        usuario = request.form['usuario']
+        correo = request.form['correo']
+        contraseña = request.form['contraseña']
 
         cursor = mysql.connection.cursor()
         cursor.execute("SELECT * FROM usuarios WHERE usuario = %s OR correo = %s", (usuario, correo))
@@ -59,12 +87,15 @@ def registro():
     
     return render_template('registro.html')
 
+@app.route('/teams')
+def show_teams():
+    teams = get_teams()  # Llama a get_teams para obtener la lista de equipos
+    return render_template('teams.html', teams=teams)  # Pasa 'teams' a la plantilla
 
 @app.route('/team/<int:team_id>')
 def show_team_details(team_id):
     return team_details(team_id)
 
-# Ruta para el login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -72,19 +103,54 @@ def login():
         contraseña = request.form['contraseña']
 
         cur = mysql.connection.cursor()
-        cur.execute("SELECT id, usuario, correo, contraseña FROM usuarios WHERE usuario = %s", (usuario,))
+        cur.execute("SELECT id, usuario, correo, contraseña, is_admin FROM usuarios WHERE usuario = %s", (usuario,))
         user = cur.fetchone()
         cur.close()
 
-        if user and check_password_hash(user[3], contraseña):  # `user[3]` es la contraseña hasheada
+        if user and check_password_hash(user[3], contraseña):  # user[3] es la contraseña hasheada
+            # Guardar id, usuario, correo, y estado de admin en sesión
+            session['usuario_id'] = user[0]  # ID del usuario
+            session['usuario'] = user[1]     # Nombre de usuario
+            session['correo'] = user[2]      # Correo del usuario
+            session['is_admin'] = int(user[4])  # Asegurarse de que sea un entero (1 o 0)
+
+            # Redirigir basado en rol de usuario
+            if session['is_admin'] == 1:  # Si es administrador
+                return redirect(url_for('admin_dashboard'))
+            else:  # Usuario normal
+                return redirect(url_for('teams'))
+        else:
+            return render_template('login.html', error="Usuario o contraseña incorrectos.")
+
+    return render_template('login.html')
+
+# Ruta para el login
+@app.route('/login', methods=['GET', 'POST'])
+def login1():
+    if request.method == 'POST':
+        usuario = request.form['usuario']
+        contraseña = request.form['contraseña']
+
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT id, usuario, correo, contraseña, is_admin FROM usuarios WHERE usuario = %s", (usuario,))
+        user = cur.fetchone()
+        cur.close()
+
+        if user and check_password_hash(user[3], contraseña):  # user[3] es la contraseña hasheada
             # Guardar id, usuario y correo en sesión
             session['usuario_id'] = user[0]  # ID del usuario
             session['usuario'] = user[1]     # Nombre de usuario
             session['correo'] = user[2]      # Correo del usuario
-            return redirect(url_for('teams'))
+            session['is_admin'] = user[4]    # `is_admin` (TRUE o FALSE)
+
+            # Redirigir basado en rol de usuario
+            if session['is_admin']:  # Si es administrador
+                return redirect(url_for('admin_dashboard'))
+            else:  # Usuario normal
+                return redirect(url_for('teams'))
         else:
             return render_template('login.html', error="Usuario o contraseña incorrectos.")
-    
+
     return render_template('login.html')
 
 
@@ -180,7 +246,32 @@ def editar_usuario():
         return redirect(url_for('login'))
     return render_template('edit_user.html')
 
+@app.route('/admin_dashboard')
+def admin_dashboard():
+    if 'usuario' not in session or session.get('is_admin') != 1:
+        flash("Acceso denegado. No tiene permisos de administrador.")
+        return redirect(url_for('login'))
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT id, usuario, correo FROM usuarios WHERE is_admin = 1")
+    administradores = cursor.fetchall()
+    cursor.close()
+    
+    return render_template('admin_dashboard.html', administradores=administradores)
+
+##Ruta para la Página de Administrador
+@app.route('/admin_dashboard')
+def admin_dashboard1():
+    if 'usuario' not in session or not session.get('is_admin'):
+        return redirect(url_for('login'))  # Redirigir si no es admin
+    return render_template('admin_dashboard.html')  # Muestra el panel de admin
+
+
 
 # Ejecutar la aplicación
 if __name__ == '__main__':
     app.run(debug=True)
+
+if __name__ == "__main__":
+    equipos = get_teams()
+    print(equipos)  # Muestra el resultado completo para verificar la estructura de los datos

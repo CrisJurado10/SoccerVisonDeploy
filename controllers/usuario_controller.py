@@ -16,6 +16,7 @@ def crear_usuario(mysql):
         usuario = nuevo_usuario_data.get('usuario')
         correo = nuevo_usuario_data.get('correo')
         contraseña = nuevo_usuario_data.get('contraseña')
+        is_admin = int(nuevo_usuario_data.get('is_admin', 0))  # Captura el valor de is_admin o usa 0 como predeterminado
 
         if not usuario or not correo or not contraseña:
             return jsonify({"error": "Campos obligatorios faltantes"}), 400
@@ -32,8 +33,9 @@ def crear_usuario(mysql):
             return jsonify({"error": "El usuario o correo ya existen"}), 409
 
         contraseña_hasheada = generate_password_hash(contraseña)
-        cursor.execute("INSERT INTO usuarios (usuario, correo, contraseña) VALUES (%s, %s, %s)", 
-                       (usuario, correo, contraseña_hasheada))
+        # Agregar is_admin en la inserción
+        cursor.execute("INSERT INTO usuarios (usuario, correo, contraseña, is_admin) VALUES (%s, %s, %s, %s)", 
+                       (usuario, correo, contraseña_hasheada, is_admin))
         mysql.connection.commit()
         cursor.close()
 
