@@ -312,12 +312,7 @@ def admin_dashboard1():
         return redirect(url_for('login'))  # Redirigir si no es admin
     return render_template('admin_dashboard.html')  # Muestra el panel de admin
 
-
-
 # Ejecutar la aplicación
 if __name__ == '__main__':
     app.run(debug=True)
 
-if __name__ == "__main__":
-    equipos = get_teams()
-    print(equipos)  # Muestra el resultado completo para verificar la estructura de los datos
