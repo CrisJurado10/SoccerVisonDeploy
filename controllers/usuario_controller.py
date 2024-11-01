@@ -51,7 +51,7 @@ def obtener_usuarios(mysql):
     usuarios = cursor.fetchall()
     cursor.close()
 
-    return jsonify([{'id': usuario[0], 'usuario': usuario[1], 'correo': usuario[2], 'contraseña': usuario[3]} for usuario in usuarios]), 200
+    return jsonify([{'id': usuario[0], 'usuario': usuario[1], 'correo': usuario[2], 'contraseña': usuario[3], 'is_admin': usuario[4]} for usuario in usuarios]), 200
 
 # Obtener un usuario por ID
 def obtener_usuario(indice, mysql):
@@ -64,8 +64,50 @@ def obtener_usuario(indice, mysql):
         return jsonify({'id': usuario[0], 'usuario': usuario[1], 'correo': usuario[2], 'contraseña': usuario[3]}), 200
     return jsonify({"error": "Usuario no encontrado"}), 404
 
+
+
 # Actualizar un usuario
 def actualizar_usuario(indice, mysql):
+    try:
+        usuario_actualizado_data = request.get_json()
+        if not usuario_actualizado_data:
+            return jsonify({"error": "La solicitud debe contener un JSON válido."}), 400
+        
+        usuario = usuario_actualizado_data.get('usuario')
+        correo = usuario_actualizado_data.get('correo')
+        nueva_contraseña = usuario_actualizado_data.get('contraseña')
+
+        if not usuario or not correo:
+            return jsonify({"error": "Los campos usuario y correo son obligatorios."}), 400
+
+        if nueva_contraseña and not es_contraseña_valida(nueva_contraseña):
+            return jsonify({"error": "La contraseña debe tener al menos 8 caracteres, incluir una letra mayúscula y un carácter especial."}), 400
+
+        cursor = mysql.connection.cursor()
+
+        if nueva_contraseña:
+            contraseña_hasheada = generate_password_hash(nueva_contraseña)
+            cursor.execute(
+                "UPDATE usuarios SET usuario = %s, correo = %s, contraseña = %s WHERE id = %s",
+                (usuario, correo, contraseña_hasheada, indice)
+            )
+        else:
+            cursor.execute(
+                "UPDATE usuarios SET usuario = %s, correo = %s WHERE id = %s",
+                (usuario, correo, indice)
+            )
+
+        mysql.connection.commit()
+        cursor.close()
+
+        return jsonify({"message": "Usuario actualizado correctamente"}), 200
+
+    except Exception as e:
+        print(f"Error al actualizar el usuario: {str(e)}")
+        return jsonify({"error": f"Error al actualizar el usuario: {str(e)}"}), 500
+
+ # Actualizar user on session
+def actualizar_usuario_on_session(indice, mysql):
     try:
         usuario_actualizado_data = request.get_json()
         usuario = usuario_actualizado_data.get('usuario')
@@ -96,7 +138,7 @@ def actualizar_usuario(indice, mysql):
     except Exception as e:
         print(f"Error al actualizar el usuario: {str(e)}")
         return jsonify({"error": f"Error al actualizar el usuario: {str(e)}"}), 500
-
+  
 # Eliminar un usuario
 def eliminar_usuario(indice, mysql):
     cursor = mysql.connection.cursor()

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Administrador de Usuarios</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         /* Estilos generales */
@@ -176,7 +177,7 @@
         <input type="email" id="correo" placeholder="Correo" required>
         <input type="password" id="contraseña" placeholder="Contraseña" required>
         <label for="is_admin">Administrador</label>
-    <input type="checkbox" id="is_admin" name="is_admin">
+        <input type="checkbox" id="is_admin" name="is_admin">
         <button type="submit">Crear</button>
     </form>
 
@@ -244,104 +245,108 @@
         }
 
         function agregarUsuarioATabla(usuario) {
-            const tr = document.createElement('tr');
-            const tdID = document.createElement('td');
-            tdID.textContent = usuario.id;
+    const tr = document.createElement('tr');
+    const tdID = document.createElement('td');
+    tdID.textContent = usuario.id;
 
-            const tdUsuario = document.createElement('td');
-            tdUsuario.textContent = usuario.usuario;
+    const tdUsuario = document.createElement('td');
+    tdUsuario.textContent = usuario.usuario;
 
-            const tdCorreo = document.createElement('td');
-            tdCorreo.textContent = usuario.correo;
+    const tdCorreo = document.createElement('td');
+    tdCorreo.textContent = usuario.correo;
 
-            const tdAcciones = document.createElement('td');
-            const botones = document.createElement('div');
-            botones.className = 'botones';
+    const tdAcciones = document.createElement('td');
+    const botones = document.createElement('div');
+    botones.className = 'botones';
 
-            const editarBtn = document.createElement('button');
-            editarBtn.textContent = 'Editar';
-            editarBtn.className = 'editar-btn';
-            editarBtn.onclick = () => {
-                document.getElementById('IDActualizar').value = usuario.id;
-                document.getElementById('usuarioActualizar').value = usuario.usuario;
-                document.getElementById('correoActualizar').value = usuario.correo;
-                document.getElementById('contraseñaActualizar').value = usuario.contraseña;
-            };
-
-            const eliminarBtn = document.createElement('button');
-            eliminarBtn.textContent = 'Eliminar';
-            eliminarBtn.className = 'eliminar-btn';
-            eliminarBtn.onclick = async () => {
-                await fetch(`/usuarios/${usuario.id}`, { method: 'DELETE' });
-                cargarUsuarios();
-            };
-
-            const visualizarBtn = document.createElement('button');
-            visualizarBtn.textContent = 'Visualizar';
-            visualizarBtn.className = 'visualizar-btn';
-            visualizarBtn.onclick = () => {
-                alert(`Detalles del usuario: \nID: ${usuario.id}\nUsuario: ${usuario.usuario}\nCorreo: ${usuario.correo}\nContraseña: ${usuario.contraseña}`);
-            };
-
-            botones.appendChild(editarBtn);
-            botones.appendChild(eliminarBtn);
-            botones.appendChild(visualizarBtn);
-            tdAcciones.appendChild(botones);
-
-            tr.appendChild(tdID);
-            tr.appendChild(tdUsuario);
-            tr.appendChild(tdCorreo);
-            tr.appendChild(tdAcciones);
-            listaUsuarios.appendChild(tr);
-        }
-
-        document.getElementById('crearUsuarioForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const nuevoUsuario = {
-        usuario: document.getElementById('usuario').value,
-        correo: document.getElementById('correo').value,
-        contraseña: document.getElementById('contraseña').value,
-        is_admin: document.getElementById('is_admin').checked ? 1 : 0, // Captura el valor de is_admin
+    const editarBtn = document.createElement('button');
+    editarBtn.textContent = 'Editar';
+    editarBtn.className = 'editar-btn';
+    editarBtn.onclick = () => {
+        document.getElementById('IDActualizar').value = usuario.id;
+        document.getElementById('usuarioActualizar').value = usuario.usuario;
+        document.getElementById('correoActualizar').value = usuario.correo;
+        document.getElementById('contraseñaActualizar').value = usuario.contraseña;
     };
 
-    const response = await fetch('/usuarios', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(nuevoUsuario),
-    });
-
-    if (response.ok) {
+    const eliminarBtn = document.createElement('button');
+    eliminarBtn.textContent = 'Eliminar';
+    eliminarBtn.className = 'eliminar-btn';
+    eliminarBtn.onclick = async () => {
+        await fetch(`/usuarios/${usuario.id}`, { method: 'DELETE' });
         cargarUsuarios();
-        document.getElementById('crearUsuarioForm').reset();
-    } else {
-        const errorData = await response.json();
-        mensajeError.textContent = errorData.mensaje || 'Error al crear el usuario.';
-    }
-});
+    };
 
+    const visualizarBtn = document.createElement('button');
+    visualizarBtn.textContent = 'Visualizar';
+    visualizarBtn.className = 'visualizar-btn';
+    visualizarBtn.onclick = () => {
+        const esAdmin = usuario.is_admin === 1 ? "Es administrador" : "No es administrador"; // Verifica el valor de is_admin
+        alert(`Detalles del usuario: \nID: ${usuario.id}\nUsuario: ${usuario.usuario}\nCorreo: ${usuario.correo}\nContraseña: ${usuario.contraseña}\n${esAdmin}`);
+    };
+
+    botones.appendChild(editarBtn);
+    botones.appendChild(eliminarBtn);
+    botones.appendChild(visualizarBtn);
+    tdAcciones.appendChild(botones);
+
+    tr.appendChild(tdID);
+    tr.appendChild(tdUsuario);
+    tr.appendChild(tdCorreo);
+    tr.appendChild(tdAcciones);
+    listaUsuarios.appendChild(tr);
+}
+
+
+        document.getElementById('crearUsuarioForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const nuevoUsuario = {
+            usuario: document.getElementById('usuario').value,
+            correo: document.getElementById('correo').value,
+            contraseña: document.getElementById('contraseña').value,
+            is_admin: document.getElementById('is_admin').checked ? 1 : 0, // 1 si es admin, 0 si no
+};
+
+
+            const response = await fetch('/usuarios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(nuevoUsuario),
+            });
+
+            if (response.ok) {
+                cargarUsuarios();
+                document.getElementById('crearUsuarioForm').reset();
+            } else {
+                const errorData = await response.json();
+                mensajeError.textContent = errorData.mensaje || 'Error al crear el usuario, este ya existe en el sistema.';
+            }
+        });
 
         document.getElementById('actualizarUsuarioForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const usuarioActualizar = {
-                id: document.getElementById('IDActualizar').value,
                 usuario: document.getElementById('usuarioActualizar').value,
                 correo: document.getElementById('correoActualizar').value,
-                contraseña: document.getElementById('contraseñaActualizar').value,
+                contraseña: document.getElementById('contraseñaActualizar').value
             };
 
-            await fetch(`/usuarios/${usuarioActualizar.id}`, {
+            const id = document.getElementById('IDActualizar').value;
+
+            const response = await fetch(`/usuarios/${id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(usuarioActualizar),
             });
 
-            cargarUsuarios();
-            document.getElementById('actualizarUsuarioForm').reset();
+            if (response.ok) {
+                cargarUsuarios();
+                document.getElementById('actualizarUsuarioForm').reset();
+            } else {
+                const errorData = await response.json();
+                alert(`Error al actualizar el usuario: ${errorData.error}`);
+            }
         });
 
         document.getElementById('eliminarUsuarioForm').addEventListener('submit', async (e) => {
@@ -375,7 +380,6 @@
             usuariosOrdenados.forEach(usuario => agregarUsuarioATabla(usuario));
         });
 
-        // Cargar usuarios al iniciar la página
         cargarUsuarios();
     </script>
 </body>

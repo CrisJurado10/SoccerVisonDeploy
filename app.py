@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 from flask_mysqldb import MySQL
 from werkzeug.security import check_password_hash, generate_password_hash, check_password_hash
 from controllers.usuario_controller import (
-    crear_usuario, obtener_usuarios, obtener_usuario, actualizar_usuario, eliminar_usuario
+    crear_usuario, obtener_usuarios, obtener_usuario, actualizar_usuario, eliminar_usuario, es_contraseña_valida, actualizar_usuario_on_session
 )
 from models.models import get_teams, get_team_details
 from controllers.team_controller import index, team_details
@@ -179,7 +179,59 @@ def editar():
     return render_template('edit_user.html')
 
 @app.route('/actualizar_usuario', methods=['POST'])
-def actualizar_usuario():
+def actualizar_usuario(indice, mysql):
+    try:
+        # Intentar obtener los datos en formato JSON
+        usuario_actualizado_data = request.get_json()
+        if not usuario_actualizado_data:
+            return jsonify({"error": "La solicitud debe contener un JSON válido."}), 400
+
+        # Obtener los datos del JSON
+        usuario = usuario_actualizado_data.get('usuario')
+        correo = usuario_actualizado_data.get('correo')
+        nueva_contraseña = usuario_actualizado_data.get('contraseña')
+
+        # Verificar si los campos obligatorios están presentes
+        if not usuario or not correo:
+            return jsonify({"error": "Los campos usuario y correo son obligatorios."}), 400
+
+        # Validar la nueva contraseña solo si se envía una
+        if nueva_contraseña and not es_contraseña_valida(nueva_contraseña):
+            return jsonify({"error": "La contraseña debe tener al menos 8 caracteres, incluir una letra mayúscula y un carácter especial."}), 400
+
+        cursor = mysql.connection.cursor()
+
+        # Si hay una nueva contraseña, se hashea y actualiza
+        if nueva_contraseña:
+            contraseña_hasheada = generate_password_hash(nueva_contraseña)
+            cursor.execute(
+                "UPDATE usuarios SET usuario = %s, correo = %s, contraseña = %s WHERE id = %s",
+                (usuario, correo, contraseña_hasheada, indice)
+            )
+        else:
+            # Si no se envía nueva contraseña, actualiza solo usuario y correo
+            cursor.execute(
+                "UPDATE usuarios SET usuario = %s, correo = %s WHERE id = %s",
+                (usuario, correo, indice)
+            )
+
+        mysql.connection.commit()
+        cursor.close()
+        
+        return jsonify({"message": "Usuario actualizado correctamente"}), 200
+
+    except Exception as e:
+        print(f"Error al actualizar el usuario: {str(e)}")
+        return jsonify({"error": f"Error al actualizar el usuario: {str(e)}"}), 500
+
+
+@app.route('/usuarios/<int:indice>', methods=['PUT'])
+def actualizar(indice):
+    return actualizar_usuario(indice, mysql)
+
+#ruta para actualizar on session
+@app.route('/actualizar_usuario_on_session', methods=['POST'])
+def actualizar_usuario_session():
     if 'usuario' not in session:
         return redirect(url_for('login'))
 
@@ -209,12 +261,6 @@ def actualizar_usuario():
 
     flash("Usuario actualizado exitosamente.")
     return redirect(url_for('teams'))
-
-
-
-@app.route('/usuarios/<int:indice>', methods=['PUT'])
-def actualizar(indice):
-    return actualizar_usuario(indice, mysql)
 
 @app.route('/usuarios/<int:indice>', methods=['DELETE'])
 def eliminar(indice):
