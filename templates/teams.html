@@ -255,6 +255,24 @@
             margin-left: 220px;
         }
 
+        .btn-results {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #ffcc00;
+            color: #000;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .btn-results:hover {
+            background-color: #e6b800;
+            transform: scale(1.05);
+            color: #000;
+        }
+
+
         /* Responsive */
         @media (max-width: 768px) {
             table {
@@ -316,7 +334,7 @@
                     <img src="{{ team['team']['logo'] }}" alt="{{ team['team']['name'] }} Logo" class="team-logo">
                 </td>
                 <td>{{ team['team']['name'] }}</td>
-                <td><a href="{{ url_for('show_team_details', team_id=team['team']['id']) }}">Ver Resultados</a></td>
+                <td><a href="{{ url_for('show_team_details', team_id=team['team']['id']) }}" class="btn-results">Ver Resultados</a></td>
             </tr>
             {% endfor %}
         </table>
