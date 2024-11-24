@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime
 
-API_KEY = 'e1874afd6ca24ed07b43c8322f67245e'  # Reemplaza con tu API Key
+API_KEY = 'ba3cc38c034a1dc40f75e96c7a10a9c8'  # Reemplaza con tu API Key
 LEAGUE_ID = '242'  # ID de la Liga Pro Ecuador
 BASE_URL = 'https://v3.football.api-sports.io'
 headers = {

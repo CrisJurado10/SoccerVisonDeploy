@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soccer Statistics</title>
+
+    <!-- Include Bootstrap for styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Include Chart.js for rendering charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+         body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, rgba(2, 35, 135, 0.9), rgba(255, 87, 34, 0.9)), url('https://www.example.com/football-stadium-bg.jpg') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            color: #ffffff;
+            text-align: center;
+            padding-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 3em;
+            color: #ffcc00;
+            margin-top: 15px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+            font-family: 'Helvetica Neue', sans-serif;
+        }
+
+        .container {
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* Estilos del sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 80px;
+            background-color: #333;
+            overflow-x: hidden;
+            transition: width 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar.expanded {
+            width: 220px;
+        }
+
+        /* Estilo para el ícono del perfil */
+        .sidebar img.profile-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-bottom: 2px;
+            transition: transform 0.3s;
+        }
+
+        .sidebar img.profile-icon:hover {
+            transform: scale(1.1);
+        }
+
+        /* Estilo para el enlace de Editar Usuario */
+        .edit-user-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+            color: #bbb;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .edit-user-link:hover {
+            color: #ffcc00;
+        }
+
+        /* Icono de Editar Usuario */
+        .edit-icon {
+            width: 24px; /* Tamaño del icono */
+            height: 24px;
+            transition: transform 0.3s;
+        }
+
+        .sidebar.expanded .edit-icon {
+            transform: scale(1.1);
+        }
+
+        /* Texto de Editar Usuario, oculto por defecto */
+        .edit-text {
+            display: none;
+            margin-left: 8px;
+            font-weight: bold;
+        }
+
+
+        /* Mostrar el texto cuando el sidebar está expandido */
+        .sidebar.expanded .edit-text {
+            display: inline;
+        }
+
+        /* Sidebar link styles */
+        .teams-link {
+            display: flex;
+            align-items: center; /* Vertically aligns icon and text */
+            justify-content: flex-start;
+            padding: 10px;
+            color: #bbb;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .teams-link:hover {
+            color: #ffcc00; /* Change color on hover */
+        }
+
+        .teams-icon {
+            width: 24px; /* Adjust icon size */
+            height: auto; /* Maintain aspect ratio */
+            margin-right: 10px; /* Space between icon and text */
+            vertical-align: middle; /* Ensure the image is vertically aligned */
+        }
+
+        .teams-text {
+            font-size: 20px; /* Adjust text size */
+            font-weight: bold;
+            line-height: 1; /* Ensure text aligns vertically with the icon */
+        }
+
+
+        /* Contenido del sidebar expandido */
+        .sidebar-content {
+            display: none;
+            color: #fff;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .sidebar.expanded .sidebar-content {
+            display: block;
+            margin-top: 20px;
+        }
+
+        .sidebar-content p {
+            margin: 0;
+        }
+
+        .sidebar-content a {
+            color: #bbb;
+            text-decoration: none;
+            display: block;
+            margin: 15px 0;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .sidebar-content a:hover {
+            color: #ffcc00;
+        }
+
+        /* Sección de Cerrar Sesión */
+        .logout-section {
+            margin-top: auto;
+            padding: 20px 0;
+            transition: background 0.3s;
+        }
+
+        .logout-section a {
+            color: #bbb;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .logout-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+        }
+
+        .logout-text {
+            display: none; /* Oculto por defecto */
+        }
+
+        .logout-icon {
+            width: 40px; /* Aumenta el tamaño */
+            height: 40px;
+            margin-right: 8px;
+        }
+
+        .logout-section {
+            margin-top: auto; /* Mantiene la sección al final */
+            padding: 20px 0; /* Añade espacio arriba y abajo */
+            position: relative; /* Cambia a relativo */
+            bottom: 20px; /*  20px hacia arriba desde la parte inferior */
+        }
+
+
+
+        .sidebar.expanded .logout-text {
+            display: inline; /* Visible cuando el sidebar está expandido */
+        }
+
+        .logout-section a:hover {
+            color: #ffcc00;
+        }
+
+        /* Estilo del logo de la página */
+        .page-logo {
+            width: 220px;
+            height: auto;
+            margin-top: 20px;
+            transition: transform 0.3s;
+        }
+
+        .page-logo:hover {
+            transform: scale(1.1);
+        }
+
+
+        
+
+        .dropdown-menu {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dropdown-item img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+
+        .chart-container {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        #error-message {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+     <!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <img src="{{ url_for('static', filename='logos/user.png') }}" alt="User Icon" class="profile-icon" onclick="toggleSidebar()">
+    
+    <div class="sidebar-content">
+        <p>{{ usuario }}</p>
+        
+        <!-- Link for Editar Usuario -->
+        <a href="{{ url_for('editar') }}" class="edit-user-link">
+            <img src="{{ url_for('static', filename='logos/edit-user.png') }}" alt="Editar Usuario Icono" class="edit-icon">
+            <span class="edit-text">Editar Usuario</span>
+        </a>
+
+
+        <!-- New link for Teams (Equipos) -->
+        <a href="{{ url_for('teams') }}" class="teams-link">
+            <img src="{{ url_for('static', filename='logos/teams-icon.png') }}" alt="Estadísticas Icono" class="teams-icon">
+            <span class="statistics-text">Equipos</span>
+        </a>
+        
+    </div>
+    
+    <!-- Logout section -->
+    <div class="logout-section">
+        <a href="{{ url_for('logout') }}">
+            <img src="{{ url_for('static', filename='logos/cerrar-sesion.png') }}" alt="Cerrar Sesión Icono" class="logout-icon">
+            <span class="logout-text">Cerrar Sesión</span>
+        </a>
+    </div>
+</div>
+
+    <h1>Soccer Team Statistics</h1>
+
+    <!-- Optimized Dropdown -->
+    <div class="d-flex justify-content-center mt-4">
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" id="teamDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                Select a Team
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="teamDropdown" id="team-list">
+                <!-- Teams will be dynamically added here by JavaScript -->
+                {% for team in teams %}
+                <li>
+                    <button class="dropdown-item" data-id="{{ team.team.id }}">
+                        <img src="{{ team.team.logo }}" alt="{{ team.team.name }} Logo">
+                        {{ team.team.name }}
+                    </button>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Placeholder for charts -->
+    <div id="charts-container" style="display:none;">
+        <!-- Goals Scored Chart -->
+        <div class="chart-container">
+            <h2>Goals Scored</h2>
+            <canvas id="goalsChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- Goals Conceded Chart -->
+        <div class="chart-container">
+            <h2>Goals Conceded</h2>
+            <canvas id="concededChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- Halftime Scores Chart -->
+        <div class="chart-container">
+            <h2>Halftime Scores</h2>
+            <canvas id="halftimeChart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- Win/Loss/Draw Percentage Chart -->
+        <div class="chart-container">
+            <h2>Win/Loss/Draw Percentage</h2>
+            <canvas id="winLossChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Error message -->
+    <div id="error-message" class="text-danger text-center mt-3"></div>
+
+    <!-- JavaScript to handle chart generation and dropdown functionality -->
+    <script>
+        let chartInstanceGoals = null;
+        let chartInstanceConceded = null;
+        let chartInstanceHalftime = null;
+        let chartInstanceWinLoss = null;
+
+        // Handle dropdown item click
+        document.querySelectorAll('#team-list .dropdown-item').forEach(function (item) {
+            item.addEventListener('click', function () {
+                const teamId = this.getAttribute('data-id');
+                const teamLogo = this.querySelector('img').src; // Get the team's logo URL
+                const teamName = this.textContent.trim(); // Get the team's name
+                
+                // Display the team's logo and name
+                displayTeamLogo(teamLogo, teamName);
+
+                // Fetch and display team data
+                fetchTeamData(teamId);
+            });
+        });
+
+        function displayTeamLogo(logoUrl, teamName) {
+            // Get or create the container for the team's logo
+            let logoContainer = document.getElementById('team-logo-container');
+            if (!logoContainer) {
+                logoContainer = document.createElement('div');
+                logoContainer.id = 'team-logo-container';
+                logoContainer.style.marginTop = '20px';
+                document.body.insertBefore(logoContainer, document.getElementById('charts-container'));
+            }
+
+            // Set the inner content of the container
+            logoContainer.innerHTML = `
+                <img src="${logoUrl}" alt="${teamName} Logo" style="width: 100px; height: 100px; border-radius: 10px;">
+                <p style="margin-top: 10px; color: white; font-size: 1.2em;">${teamName}</p>
+            `;
+        }
+
+        function fetchTeamData(teamId) {
+            if (teamId) {
+                document.getElementById('error-message').innerText = '';
+
+                fetch(`/fetch_team_statistics?team_id=${teamId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            document.getElementById('error-message').innerText = data.error;
+                            document.getElementById('charts-container').style.display = 'none';
+                        } else {
+                            document.getElementById('charts-container').style.display = 'block';
+                            generateGoalsChart(data.results);
+                            generateConcededChart(data.results);
+                            generateHalftimeChart(data.results);
+                            generateWinLossChart(data.results, data.team.id);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                        document.getElementById('error-message').innerText = 'Error fetching data.';
+                    });
+            } else {
+                document.getElementById('charts-container').style.display = 'none';
+                document.getElementById('error-message').innerText = '';
+            }
+        }
+
+        function generateGoalsChart(results) {
+            const dates = results.map(match => match.date);
+            const goalsScored = results.map(match => match.goals.home);
+
+            const ctx = document.getElementById('goalsChart').getContext('2d');
+            if (chartInstanceGoals) chartInstanceGoals.destroy();
+
+            chartInstanceGoals = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Goals Scored',
+                        data: goalsScored,
+                        backgroundColor: 'rgba(75,192,192,0.2)',
+                        borderColor: 'rgba(75,192,192,1)',
+                        borderWidth: 1,
+                        fill: false,
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                stepSize: 1, // Force step size of 1 to show only integers
+                                callback: function (value) {
+                                    return value; // Display all values (integers only because of stepSize)
+                                }
+                            }
+                        }]
+                    }
+                }
+            });
+        }
+
+
+
+        function generateConcededChart(results) {
+            const dates = results.map(match => match.date);
+            const goalsConceded = results.map(match => match.goals.away);
+
+            const ctx = document.getElementById('concededChart').getContext('2d');
+            if (chartInstanceConceded) chartInstanceConceded.destroy();
+
+            chartInstanceConceded = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Goals Conceded',
+                        data: goalsConceded,
+                        backgroundColor: 'rgba(255,99,132,0.2)',
+                        borderColor: 'rgba(255,99,132,1)',
+                        borderWidth: 1,
+                        fill: false,
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                stepSize: 1, // Force step size of 1 to show only integers
+                                callback: function (value) {
+                                    return value; // Display all values (integers only because of stepSize)
+                                }
+                            }
+                        }]
+                    }
+                }
+            });
+        }
+
+
+        function generateHalftimeChart(results) {
+            const dates = results.map(match => match.date);
+            const halftimeScoresHome = results.map(match => match.score.halftime.home);
+            const halftimeScoresAway = results.map(match => match.score.halftime.away);
+
+            const ctx = document.getElementById('halftimeChart').getContext('2d');
+            if (chartInstanceHalftime) chartInstanceHalftime.destroy();
+
+            chartInstanceHalftime = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Halftime Home Score',
+                            data: halftimeScoresHome,
+                            backgroundColor: 'rgba(54,162,235,0.2)',
+                            borderColor: 'rgba(54,162,235,1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Halftime Away Score',
+                            data: halftimeScoresAway,
+                            backgroundColor: 'rgba(255,206,86,0.2)',
+                            borderColor: 'rgba(255,206,86,1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                stepSize: 1, // Force step size of 1 to show only integers
+                                callback: function (value) {
+                                    return value; // Display all values (integers only because of stepSize)
+                                }
+                            }
+                        }]
+                    }
+                }
+            });
+        }
+
+
+        function generateWinLossChart(results, teamId) {
+            let wins = 0, losses = 0, draws = 0;
+
+            results.forEach(match => {
+                if (match.teams.home.id === teamId) {
+                    if (match.teams.home.winner) wins++;
+                    else if (match.teams.away.winner) losses++;
+                    else draws++;
+                } else {
+                    if (match.teams.away.winner) wins++;
+                    else if (match.teams.home.winner) losses++;
+                    else draws++;
+                }
+            });
+
+            const totalMatches = wins + losses + draws;
+            const winPercentage = ((wins / totalMatches) * 100).toFixed(2);
+            const lossPercentage = ((losses / totalMatches) * 100).toFixed(2);
+            const drawPercentage = ((draws / totalMatches) * 100).toFixed(2);
+
+            const canvas = document.getElementById('winLossChart');
+            const ctx = canvas.getContext('2d');
+
+            // Adjust the canvas size to scale down by 20%
+            canvas.width = canvas.width * 0.2;
+            canvas.height = canvas.height * 0.2;
+
+            // Destroy the existing chart instance if it exists
+            if (chartInstanceWinLoss) chartInstanceWinLoss.destroy();
+
+            // Create the chart
+            chartInstanceWinLoss = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Wins (%)', 'Losses (%)', 'Draws (%)'],
+                    datasets: [{
+                        label: 'Win/Loss/Draw',
+                        data: [winPercentage, lossPercentage, drawPercentage],
+                        backgroundColor: ['rgba(75,192,192,0.2)', 'rgba(255,99,132,0.2)', 'rgba(255,206,86,0.2)'],
+                        borderColor: ['rgba(75,192,192,1)', 'rgba(255,99,132,1)', 'rgba(255,206,86,1)'],
+                        borderWidth: 1
+                    }]
+                }
+            });
+        }
+
+    </script>
+
+
+ <!-- JavaScript para la funcionalidad de expansión del sidebar -->
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            sidebar.classList.toggle('expanded');
+            mainContent.classList.toggle('expanded');
+        }
+    </script>
+</body>
+
+</html>

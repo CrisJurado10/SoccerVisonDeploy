@@ -97,6 +97,34 @@
             font-weight: bold;
         }
 
+        /* Statics Sidebar Link */
+        .statistics-link {
+            display: flex;
+            align-items: center; /* Vertically aligns icon and text */
+            justify-content: flex-start;
+            padding: 10px;
+            color: #bbb;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .statistics-link:hover {
+            color: #ffcc00; /* Change color on hover */
+        }
+
+        .statistics-icon {
+            width: 24px; /* Adjust icon size */
+            height: auto; /* Maintain aspect ratio */
+            margin-right: 10px; /* Space between icon and text */
+            vertical-align: middle; /* Ensure the image is vertically aligned */
+        }
+
+        .statistics-text {
+            font-size: 20px; /* Adjust text size */
+            font-weight: bold;
+            line-height: 1; /* Ensure text aligns vertically with the icon */
+        }
+
 
         /* Mostrar el texto cuando el sidebar está expandido */
         .sidebar.expanded .edit-text {
@@ -288,29 +316,35 @@
     </head>
     <body>
 
-                <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <img src="{{ url_for('static', filename='logos/user.png') }}" alt="User Icon" class="profile-icon" onclick="toggleSidebar()">
+              <!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <img src="{{ url_for('static', filename='logos/user.png') }}" alt="User Icon" class="profile-icon" onclick="toggleSidebar()">
+    
+    <div class="sidebar-content">
+        <p>{{ usuario }}</p>
         
-        <div class="sidebar-content">
-            <p>{{ usuario }}</p>
-            
-            <!-- Contenedor para el icono de Editar Usuario -->
-            <a href="{{ url_for('editar') }}" class="edit-user-link">
-                <img src="{{ url_for('static', filename='logos/edit-user.png') }}" alt="Editar Usuario Icono" class="edit-icon">
-                <span class="edit-text">Editar Usuario</span>
-            </a>
+        <!-- Contenedor para el icono de Editar Usuario -->
+        <a href="{{ url_for('editar') }}" class="edit-user-link">
+            <img src="{{ url_for('static', filename='logos/edit-user.png') }}" alt="Editar Usuario Icono" class="edit-icon">
+            <span class="edit-text">Editar Usuario</span>
+        </a>
 
-        </div>
-        
-        <!-- Contenedor del enlace de Cerrar Sesión -->
-        <div class="logout-section">
-            <a href="{{ url_for('logout') }}">
-                <img src="{{ url_for('static', filename='logos/cerrar-sesion.png') }}" alt="Cerrar Sesión Icono" class="logout-icon">
-                <span class="logout-text">Cerrar Sesión</span>
-            </a>
-        </div>
+        <!-- New link for Estadísticas (Statistics Page) -->
+        <a href="{{ url_for('statics') }}" class="statistics-link">
+            <img src="{{ url_for('static', filename='logos/estadisticas.png') }}" alt="Estadísticas Icono" class="statistics-icon">
+            <span class="statistics-text">Estadísticas</span>
+        </a>
+
     </div>
+    
+    <!-- Contenedor del enlace de Cerrar Sesión -->
+    <div class="logout-section">
+        <a href="{{ url_for('logout') }}">
+            <img src="{{ url_for('static', filename='logos/cerrar-sesion.png') }}" alt="Cerrar Sesión Icono" class="logout-icon">
+            <span class="logout-text">Cerrar Sesión</span>
+        </a>
+    </div>
+</div>
 
 
     <!-- Contenido principal -->

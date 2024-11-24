@@ -312,6 +312,36 @@ def admin_dashboard1():
         return redirect(url_for('login'))  # Redirigir si no es admin
     return render_template('admin_dashboard.html')  # Muestra el panel de admin
 
+@app.route('/fetch_team_statistics', methods=['GET'])
+def fetch_team_statistics():
+    """Fetch team statistics based on selected team ID."""
+    team_id = request.args.get('team_id')
+    
+    if not team_id:
+        return jsonify({'error': 'No se proporcionó ID del equipo'}), 400
+    
+    # Get team details and match results using the existing function
+    team_data = get_team_details(team_id)
+    
+    if not team_data:
+        return jsonify({'error': 'Datos del equipo no encontrados'}), 404
+    
+    # Return the match results as JSON for frontend processing
+    return jsonify({
+        'team': team_data['team'],
+        'results': team_data['results']
+    })
+
+@app.route('/statics')
+def statics():
+    """Render the statistics page where users can select a team."""
+    if 'usuario' not in session:
+        return redirect(url_for('login'))
+    
+    # Fetch all teams from Liga Pro Ecuador
+    teams = get_teams()
+    return render_template('statics.html', teams=teams)
+
 # Ejecutar la aplicación
 if __name__ == '__main__':
     app.run(debug=True)
