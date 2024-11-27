@@ -1,15 +1,24 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_mysqldb import MySQL
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+import pandas as pd
+import contextlib
 from werkzeug.security import check_password_hash, generate_password_hash, check_password_hash
 from controllers.usuario_controller import (
     crear_usuario, obtener_usuarios, obtener_usuario, actualizar_usuario, eliminar_usuario, es_contraseña_valida, actualizar_usuario_on_session
 )
 from models.models import get_teams, get_team_details
 from controllers.team_controller import index, team_details
+from controllers.predictions import cargar_tabla, obtener_datos_equipo
+
+from flask_cors import CORS   
+
 
 # Inicializar la aplicación Flask
 app = Flask(__name__)
+CORS(app)
 
 # Configuración de la base de datos
 app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST', 'autorack.proxy.rlwy.net')
@@ -342,6 +351,113 @@ def statics():
     teams = get_teams()
     return render_template('statics.html', teams=teams)
 
+
+    
+
+@app.route('/pronosticar')
+def pronosticar():
+    return render_template('pronosticador.html')
+
+@app.route('/api/predict', methods=['POST'])
+def predict():
+    try:
+        data = request.get_json()
+        equipo_local = data.get("equipo_local")
+        equipo_visitante = data.get("equipo_visitante")
+        
+        # Load necessary data
+        equipos = cargar_tabla("equipos")
+        partidos = cargar_tabla("partidos")
+        jugadores = cargar_tabla("jugadores")
+        campeonatos = cargar_tabla("campeonatos")
+        
+        if equipos.empty or partidos.empty or jugadores.empty or campeonatos.empty:
+            return jsonify({"success": False, "error": "No se pudieron cargar los datos necesarios"})
+
+        # Get team IDs
+        equipo_local_id = equipos[equipos["nombre"] == equipo_local]["id_equipo"].values[0]
+        equipo_visitante_id = equipos[equipos["nombre"] == equipo_visitante]["id_equipo"].values[0]
+        
+        # Get team statistics
+        datos_local = obtener_datos_equipo(equipo_local_id, jugadores, campeonatos)
+        datos_visitante = obtener_datos_equipo(equipo_visitante_id, jugadores, campeonatos)
+
+        # Create performance DataFrame
+        historial_local = partidos[partidos['equipo_local'] == equipo_local_id]
+        historial_visitante = partidos[partidos['equipo_visitante'] == equipo_visitante_id]
+
+        # Calculate team metrics using pandas
+        metricas_local = pd.Series({
+            'promedio_goles': historial_local['goles_local'].mean(),
+            'efectividad_gol': datos_local['goles_totales'] / max(len(historial_local), 1),
+            'ratio_asistencias': datos_local['asistencias_totales'] / max(datos_local['goles_totales'], 1),
+            'indice_titulos': datos_local['copas_nacionales'] * 1.5 + datos_local['copas_internacionales'] * 2
+        })
+
+        metricas_visitante = pd.Series({
+            'promedio_goles': historial_visitante['goles_visitante'].mean(),
+            'efectividad_gol': datos_visitante['goles_totales'] / max(len(historial_visitante), 1),
+            'ratio_asistencias': datos_visitante['asistencias_totales'] / max(datos_visitante['goles_totales'], 1),
+            'indice_titulos': datos_visitante['copas_nacionales'] * 1.5 + datos_visitante['copas_internacionales'] * 2
+        })
+
+        # Calculate weighted performance scores
+        pesos = {
+            'promedio_goles': 0.35,
+            'efectividad_gol': 0.25,
+            'ratio_asistencias': 0.20,
+            'indice_titulos': 0.20
+        }
+
+        score_local = sum(metricas_local[metric] * weight for metric, weight in pesos.items()) * 1.1  # Home advantage
+        score_visitante = sum(metricas_visitante[metric] * weight for metric, weight in pesos.items())
+
+        # Normalize scores
+        total_score = score_local + score_visitante
+        prob_local = score_local / total_score
+        prob_visitante = score_visitante / total_score
+
+        # Calculate expected goals
+        goles_esperados_local = round(metricas_local['promedio_goles'] * 1.1)  # Home advantage
+        goles_esperados_visitante = round(metricas_visitante['promedio_goles'])
+
+        # Generate prediction
+        if abs(prob_local - prob_visitante) < 0.1:
+            resultado = "Empate"
+        elif prob_local > prob_visitante:
+            resultado = "Victoria del equipo local"
+        else:
+            resultado = "Victoria del equipo visitante"
+
+        return jsonify({
+            "success": True,
+            "resultado": resultado,
+            "probabilidad_local": f"{prob_local * 100:.2f}%",
+            "probabilidad_visitante": f"{prob_visitante * 100:.2f}%",
+            "marcador_probable": f"{goles_esperados_local}-{goles_esperados_visitante}",
+            "estadisticas": {
+                "local": metricas_local.to_dict(),
+                "visitante": metricas_visitante.to_dict()
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+@app.route('/api/equipos', methods=['GET'])
+def get_equipos():
+    try:
+        equipos = cargar_tabla("equipos")
+        return jsonify({
+            "success": True,
+            "equipos": equipos["nombre"].tolist()
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+    
+    
+    
 # Ejecutar la aplicación
 if __name__ == '__main__':
     app.run(debug=True)

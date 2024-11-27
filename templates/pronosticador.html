@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pronosticador de Partidos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #4CAF50, #2196F3);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .form-container {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #1E1E1E;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        .form-container label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+        }
+        .form-container select,
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 5px;
+        }
+        .form-container select {
+            background-color: #333;
+            color: #fff;
+        }
+        .form-container button {
+            background-color: #4CAF50;
+            color: #fff;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .form-container button:hover {
+            background-color: #45A049;
+        }
+        .prediction-container {
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #1E1E1E;
+            color: #fff;
+            border-radius: 10px;
+            max-width: 700px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .score-display {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            color: #FFD700;
+        }
+        .team-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .team-column {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            margin: 0 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #333;
+        }
+        .probability-bar {
+            height: 20px;
+            background-color: #555;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .probability-fill {
+            height: 100%;
+            background-color: #FFD700;
+            transition: width 0.5s ease-in-out;
+        }
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            color: #fff;
+            text-decoration: none;
+            background-color: #FF5722;
+            border-radius: 5px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            cursor: pointer;
+        }
+        .back-button:hover {
+            background-color: #E64A19;
+            transform: scale(1.05);
+        }
+        .back-button:active {
+            background-color: #D84315;
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <a href="{{ url_for('teams') }}" class="back-button">Volver al Menú</a>
+    <h1>⚽ Pronosticador de Partidos</h1>
+    <div class="form-container">
+        <form id="predictForm">
+            <label for="equipo_local">Equipo Local:</label>
+            <select id="equipo_local" name="equipo_local" required>
+                <option value="">Seleccione un equipo</option>
+            </select>
+            
+            <label for="equipo_visitante">Equipo Visitante:</label>
+            <select id="equipo_visitante" name="equipo_visitante" required>
+                <option value="">Seleccione un equipo</option>
+            </select>
+            
+            <button type="submit">Generar Pronóstico</button>
+        </form>
+    </div>
+    <div id="resultado"></div>
+
+    <script>
+        async function cargarEquipos() {
+            try {
+                const response = await fetch('/api/equipos');
+                const data = await response.json();
+                if (data.success) {
+                    const equipos = data.equipos;
+                    const selectLocal = document.getElementById('equipo_local');
+                    const selectVisitante = document.getElementById('equipo_visitante');
+                    
+                    equipos.forEach(equipo => {
+                        selectLocal.add(new Option(equipo, equipo));
+                        selectVisitante.add(new Option(equipo, equipo));
+                    });
+                }
+            } catch (err) {
+                console.error('Error al cargar equipos:', err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', cargarEquipos);
+
+        document.getElementById("predictForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const equipoLocal = document.getElementById("equipo_local").value;
+            const equipoVisitante = document.getElementById("equipo_visitante").value;
+
+            try {
+                const response = await fetch("/api/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ equipo_local: equipoLocal, equipo_visitante: equipoVisitante })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById("resultado").innerHTML = `
+                        <div class="prediction-container">
+                            <h3>Resultado del Pronóstico</h3>
+                            <div class="score-display">
+                                ${equipoLocal} ${data.marcador_probable} ${equipoVisitante}
+                            </div>
+                            <div class="team-stats">
+                                <div class="team-column">
+                                    <h4>${equipoLocal}</h4>
+                                    <div class="probability-bar">
+                                        <div class="probability-fill" style="width: ${data.probabilidad_local}"></div>
+                                    </div>
+                                    <p>Probabilidad: ${data.probabilidad_local}</p>
+                                </div>
+                                <div class="team-column">
+                                    <h4>${equipoVisitante}</h4>
+                                    <div class="probability-bar">
+                                        <div class="probability-fill" style="width: ${data.probabilidad_visitante}"></div>
+                                    </div>
+                                    <p>Probabilidad: ${data.probabilidad_visitante}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById("resultado").innerHTML = `
+                        <div class="prediction-container">
+                            <p style="color: red;">Error: ${data.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                document.getElementById("resultado").innerHTML = `
+                    <div class="prediction-container">
+                        <p style="color: red;">Error al conectar con el servidor.</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
