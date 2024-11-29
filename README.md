@@ -13,9 +13,9 @@ SoccerVisonDeploy es una aplicación web que usa inteligencia artificial para an
 
 ## Características
 1. Protección de tu información sensible: Constraseñas guardadas en el servidor de la base de datos en formato hash.
-2. Análisis de Videos de Fútbol: La aplicación permite subir videos de partidos para realizar análisis automáticos, generando estadísticas basadas en los eventos detectados.
 3. Visualización de Estadísticas: Muestra gráficos e información visual sobre el rendimiento de los jugadores o el equipo.
 4. Interfaz Amigable: La interfaz está diseñada para facilitar la navegación y el análisis de datos para usuarios técnicos y no técnicos.
+5. Predicción de Resultados: La web te brinda resultados en funcion de data como goles por equipo, jugadores, copas.
 
 ## Requisitos previos
 Python 3.x
