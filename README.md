@@ -57,6 +57,7 @@ La aplicación recupera datos de una base de datos MySQL alojada en un servidor 
 
 ## Despliegue en Render
 Este proyecto está configurado para ejecutarse en Render con un archivo Procfile que define el comando de inicio para la aplicación.
+Link web deployada: https://soccervisondeploy.onrender.com/
 
 ## Licencia
 Este proyecto está bajo la Licencia MIT.
