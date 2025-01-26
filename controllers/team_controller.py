@@ -1,6 +1,7 @@
 from flask import render_template, request, session, jsonify
 from models.models import get_teams, get_team_details
 
+# Factory for creating controllers
 def index():
     """Controlador para la página principal que muestra la lista de equipos."""
     teams = get_teams()  # Obtiene la lista de equipos desde el modelo
