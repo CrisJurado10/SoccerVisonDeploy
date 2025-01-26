@@ -3,6 +3,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
 import contextlib
 
+# Factory para creación de conexiones de base de datos
+# PATRÓN: FACTORY
+# Este patrón se utiliza para encapsular la creación del objeto `engine`. Permite centralizar la lógica de configuración
 def create_db_engine():
     DATABASE_URL = "mysql+pymysql://root:HSyAtIJhRXuHjDZiCmfLdrrbXXrrQrVY@autorack.proxy.rlwy.net:58591/railway"
     try:
@@ -18,6 +21,9 @@ def create_db_engine():
         print(f"Database connection error: {str(e)}")
         return None
 
+# Context manager para manejar la conexión
+# PATRÓN: RESOURCE ACQUISITION IS INITIALIZATION (RAII)
+# Este patrón asegura que los recursos se liberen automáticamente al final del bloque `with`
 @contextlib.contextmanager
 def get_db_connection():
     engine = create_db_engine()
@@ -48,6 +54,9 @@ def obtener_datos_equipo(id_equipo, jugadores_df, campeonatos_df):
         "copas_internacionales": campeonatos_equipo["copas_internacionales"].sum()
     }
 
+# Estrategia para cálculos de métricas
+# PATRÓN: STRATEGY
+# Esta función encapsula diferentes estrategias de cálculo para las métricas, que podrían variarse según el contexto.
 def predecir_partido(equipo_local, equipo_visitante):
     try:
         # Tablas necesarias para analizar la data
